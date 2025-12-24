@@ -1,0 +1,7 @@
+{
+  "name": "CREATE AI Studio - Nguyen Canh Cong",
+  "description": "Nền tảng sáng tạo nội dung AI tất cả trong một: Ảnh, Giọng nói, Nhân bản giọng nói và Phông nền sử dụng mô hình Gemini.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
