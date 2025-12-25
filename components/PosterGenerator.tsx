@@ -13,7 +13,6 @@ import {
   Image as ImageIcon,
   Trash2,
   Layout,
-  CaseUpper,
   Info,
   Users,
   PlusCircle
@@ -27,7 +26,7 @@ export const PosterGenerator: React.FC = () => {
   const [logoImage, setLogoImage] = useState<string | null>(null);
   
   const [prompt, setPrompt] = useState('Trong studio chuyên nghiệp, ánh sáng high-key, phông nền tối giản đẳng cấp.');
-  const [style, setStyle] = useState('Luxury High-Fashion');
+  const [style, setStyle] = useState('Luxury High-Fashion Advertisement, elegant and expensive look');
   const [ratio, setRatio] = useState<AspectRatio>('9:16');
   
   const [loading, setLoading] = useState(false);
@@ -65,7 +64,7 @@ export const PosterGenerator: React.FC = () => {
 
   const handleProductUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && productImages.length < 3) {
+    if (file && productImages.length < 5) { // Cho phép tối đa 5 sản phẩm
       const reader = new FileReader();
       reader.onloadend = () => {
         setProductImages([...productImages, reader.result as string]);
@@ -159,7 +158,7 @@ export const PosterGenerator: React.FC = () => {
             {/* Multi Product Upload */}
             <div className="space-y-4">
               <label className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
-                <Box size={14} /> 2. Danh sách sản phẩm ({productImages.length}/3)
+                <Box size={14} /> 2. Danh sách sản phẩm ({productImages.length}/5)
               </label>
               <div className="grid grid-cols-3 gap-3">
                 {productImages.map((p, i) => (
@@ -168,7 +167,7 @@ export const PosterGenerator: React.FC = () => {
                         <button onClick={() => removeProduct(i)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={10} /></button>
                     </div>
                 ))}
-                {productImages.length < 3 && (
+                {productImages.length < 5 && (
                     <button 
                         onClick={() => productInputRef.current?.click()}
                         className="aspect-square border-2 border-dashed border-slate-700 hover:border-amber-500 hover:bg-slate-800 flex flex-col items-center justify-center rounded-xl transition-all"

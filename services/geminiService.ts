@@ -5,13 +5,9 @@ import { QuizQuestion, SlideContent, GradingResult } from "../types";
 
 /**
  * Ghi nhận email người dùng vào Google Sheet thông qua Google Apps Script Web App.
- * Đảm bảo dữ liệu được gửi về tài khoản quản lý nguyenccong@gmail.com.
- * Luồng này là bắt buộc sau khi xác thực thành công qua Google GSI.
  */
 export const logUserToSheet = async (email: string, name: string) => {
   try {
-    // NCC: Thay thế SCRIPT_URL này bằng URL Web App đã deploy từ Apps Script
-    // Spreadsheet: https://docs.google.com/spreadsheets/d/...
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_placeholder_real/exec";
     
     const payload = { 
@@ -22,7 +18,6 @@ export const logUserToSheet = async (email: string, name: string) => {
       status: "Verified Login"
     };
 
-    // Sử dụng fetch với mode no-cors cho Google Apps Script
     await fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -32,15 +27,10 @@ export const logUserToSheet = async (email: string, name: string) => {
     
     console.log(`[Log-Auth] Verified: ${email}`);
   } catch (error) {
-    // Fail silently in UI but log to console for debugging
     console.warn("[Log-Auth] Sheet logging error:", error);
   }
 };
 
-/**
- * Cơ chế Retry Siêu bền bỉ (Ultra-Resilient)
- * Được thiết kế riêng cho mục đích giáo dục phi lợi nhuận
- */
 const callWithRetry = async <T>(fn: () => Promise<T>, retries = 20, delay = 10000): Promise<T> => {
   try {
     return await fn();
@@ -69,10 +59,8 @@ const cleanJsonString = (text: string): string => {
 
 export const analyzeQuizSheet = async (imageBase64: string): Promise<GradingResult> => {
   return callWithRetry<GradingResult>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const cleanBase64 = imageBase64.split(',')[1] || imageBase64;
-    // Fix: Use gemini-3-pro-preview for complex reasoning tasks
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview", 
       contents: [{
@@ -83,16 +71,13 @@ export const analyzeQuizSheet = async (imageBase64: string): Promise<GradingResu
       }],
       config: { responseMimeType: "application/json" }
     });
-    // Fix: Access response.text directly (property, not method)
     return JSON.parse(cleanJsonString(response.text || "{}")) as GradingResult;
   });
 };
 
 export const parseAnswerKeyFromMedia = async (mediaBase64: string, mimeType: string): Promise<Record<string, Record<number, string>>> => {
   return callWithRetry<Record<string, Record<number, string>>>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    // Fix: Use gemini-3-pro-preview for complex text extraction tasks
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: [{
@@ -103,25 +88,20 @@ export const parseAnswerKeyFromMedia = async (mediaBase64: string, mimeType: str
       }],
       config: { responseMimeType: "application/json" }
     });
-    // Fix: Access response.text directly (property, not method)
     return JSON.parse(cleanJsonString(response.text || "{}")) as Record<string, Record<number, string>>;
   });
 };
 
 export const parseQuestionBank = async (htmlContent: string): Promise<QuizQuestion[]> => {
   return callWithRetry<QuizQuestion[]>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    // Fix: Use gemini-3-pro-preview for complex reasoning tasks
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: [{ parts: [{ text: `Extract questions from: ${htmlContent}` }] }],
       config: { responseMimeType: "application/json" }
     });
-    // Fix: Safely parse and ensure array return to prevent unknown[] type issues
     const text = response.text || "[]";
     const parsed = JSON.parse(cleanJsonString(text));
-    // Support both direct array and object with questions property
     const list = Array.isArray(parsed) ? parsed : (parsed?.questions || []);
     return (Array.isArray(list) ? list : []) as QuizQuestion[];
   });
@@ -129,14 +109,13 @@ export const parseQuestionBank = async (htmlContent: string): Promise<QuizQuesti
 
 export const generateArtFromPhoto = async (facesSource: string | string[], style: string, env: string, instr: string, item?: string | null, logo?: string | null): Promise<string> => {
   return callWithRetry<string>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const parts: any[] = [];
     const faces = Array.isArray(facesSource) ? facesSource : [facesSource];
     faces.forEach((f) => parts.push({ inlineData: { data: f.split(',')[1] || f, mimeType: 'image/png' } }));
     if (item) parts.push({ inlineData: { data: item.split(',')[1] || item, mimeType: 'image/png' } });
     if (logo) parts.push({ inlineData: { data: logo.split(',')[1] || logo, mimeType: 'image/png' } });
-    parts.push({ text: instr });
+    parts.push({ text: `Style: ${style}. Environment: ${env}. Instruction: ${instr}` });
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash-image', contents: { parts }, config: { imageConfig: { aspectRatio: '3:4' } } });
     for (const cand of response.candidates || []) {
       for (const part of cand.content.parts) if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
@@ -147,13 +126,12 @@ export const generateArtFromPhoto = async (facesSource: string | string[], style
 
 export const generatePoster = async (models: string[], products: string[], prompt: string, style: string, ratio: string, logo?: string | null): Promise<string> => {
   return callWithRetry<string>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const parts: any[] = [];
     models.forEach((m) => parts.push({ inlineData: { data: m.split(',')[1] || m, mimeType: 'image/png' } }));
     products.forEach((p) => parts.push({ inlineData: { data: p.split(',')[1] || p, mimeType: 'image/png' } }));
     if (logo) parts.push({ inlineData: { data: logo.split(',')[1] || logo, mimeType: 'image/png' } });
-    parts.push({ text: prompt });
+    parts.push({ text: `Style: ${style}. Ratio: ${ratio}. Description: ${prompt}` });
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash-image', contents: { parts }, config: { imageConfig: { aspectRatio: ratio as any } } });
     for (const cand of response.candidates || []) {
       for (const part of cand.content.parts) if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
@@ -164,36 +142,30 @@ export const generatePoster = async (models: string[], products: string[], promp
 
 export const generateSlideContent = async (text: string): Promise<SlideContent[]> => {
   return callWithRetry<SlideContent[]>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    // Fix: Use gemini-3-pro-preview for complex reasoning tasks
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: [{ parts: [{ text: `Create slide contents: ${text}` }] }],
       config: { responseMimeType: "application/json" }
     });
-    // Fix: Access response.text directly (property, not method)
     return JSON.parse(cleanJsonString(response.text || "[]")) as SlideContent[];
   });
 };
 
 export const generateSpeech = async (text: string, voiceName: string): Promise<string> => {
   return callWithRetry<string>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text }] }],
       config: { responseModalities: [Modality.AUDIO], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } } },
     });
-    // Fix: Correct candidate and part access
     return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "";
   });
 };
 
 export const playAudio = async (base64Audio: string) => {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
-    // Fix: Manual base64 decode implementation
     const decodeBase64 = (base64: string) => {
       const binaryString = atob(base64);
       const len = binaryString.length;
@@ -216,12 +188,11 @@ export const playAudio = async (base64Audio: string) => {
 
 export const generateWeddingPhoto = async (bride: string | null, groom: string | null, style: string, theme: string, loc: string, prompt: string): Promise<string> => {
   return callWithRetry<string>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const parts: any[] = [];
     if (bride) parts.push({ inlineData: { data: bride.split(',')[1] || bride, mimeType: 'image/png' } });
     if (groom) parts.push({ inlineData: { data: groom.split(',')[1] || groom, mimeType: 'image/png' } });
-    parts.push({ text: prompt });
+    parts.push({ text: `Theme: ${theme}. Style: ${style}. Location: ${loc}. Prompt: ${prompt}` });
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash-image', contents: { parts } });
     for (const cand of response.candidates || []) {
       for (const part of cand.content.parts) if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
@@ -232,7 +203,6 @@ export const generateWeddingPhoto = async (bride: string | null, groom: string |
 
 export const generateBackgroundImage = async (prompt: string, ratio: string): Promise<string> => {
   return callWithRetry<string>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash-image', contents: [{ text: prompt }], config: { imageConfig: { aspectRatio: ratio as any } } });
     for (const cand of response.candidates || []) {
@@ -242,38 +212,88 @@ export const generateBackgroundImage = async (prompt: string, ratio: string): Pr
   });
 };
 
-export const generateVideo = async (prompt: string, image: string): Promise<string> => {
+// Fix: Add generateVideo for VideoGenerator component
+/**
+ * Tạo video từ prompt và ảnh (Veo 3.1)
+ */
+export const generateVideo = async (prompt: string, imageBase64: string): Promise<string> => {
   return callWithRetry<string>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    let op = await ai.models.generateVideos({ model: 'veo-3.1-fast-generate-preview', prompt, image: { imageBytes: image.split(',')[1] || image, mimeType: 'image/png' }, config: { numberOfVideos: 1, resolution: '720p', aspectRatio: '16:9' } });
-    while (!op.done) { await new Promise(r => setTimeout(r, 10000)); op = await ai.operations.getVideosOperation({ operation: op }); }
-    const res = await fetch(`${op.response?.generatedVideos?.[0]?.video?.uri}&key=${process.env.API_KEY}`);
-    return URL.createObjectURL(await res.blob());
+    const cleanBase64 = imageBase64.split(',')[1] || imageBase64;
+    
+    let operation = await ai.models.generateVideos({
+      model: 'veo-3.1-fast-generate-preview',
+      prompt: prompt,
+      image: {
+        imageBytes: cleanBase64,
+        mimeType: 'image/png',
+      },
+      config: {
+        numberOfVideos: 1,
+        resolution: '720p',
+        aspectRatio: '16:9'
+      }
+    });
+
+    while (!operation.done) {
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    if (!downloadLink) throw new Error("Video generation failed: No download link");
+    
+    return `${downloadLink}&key=${process.env.API_KEY}`;
   });
 };
 
-export const generateMultiSpeakerSpeech = async (dialogue: { speaker: string, text: string, voice: string }[]): Promise<string> => {
+// Fix: Add generateMultiSpeakerSpeech for VideoGenerator component
+/**
+ * Tổng hợp giọng nói đa người dùng (Multi-speaker TTS)
+ */
+export const generateMultiSpeakerSpeech = async (dialogue: any[]): Promise<string> => {
   return callWithRetry<string>(async () => {
-    // Fix: named parameter for apiKey
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = dialogue.map(d => `${d.speaker}: ${d.text}`).join('\n');
+    
+    const prompt = "TTS the following conversation:\n" + 
+      dialogue.map(d => `${d.speaker}: ${d.text}`).join('\n');
+
+    const uniqueSpeakers = Array.from(new Set(dialogue.map(d => d.speaker))).slice(0, 2);
+    
+    const speakerVoiceConfigs = uniqueSpeakers.map(s => {
+      const dLine = dialogue.find(d => d.speaker === s);
+      return {
+        speaker: s,
+        voiceConfig: {
+          prebuiltVoiceConfig: { voiceName: dLine?.voice || 'Kore' }
+        }
+      };
+    });
+
+    const config: any = {
+      responseModalities: [Modality.AUDIO],
+    };
+
+    if (speakerVoiceConfigs.length === 2) {
+      config.speechConfig = {
+        multiSpeakerVoiceConfig: {
+          speakerVoiceConfigs: speakerVoiceConfigs
+        }
+      };
+    } else if (speakerVoiceConfigs.length === 1) {
+      config.speechConfig = {
+        voiceConfig: {
+          prebuiltVoiceConfig: { voiceName: speakerVoiceConfigs[0].voiceConfig.prebuiltVoiceConfig.voiceName }
+        }
+      };
+    }
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text: prompt }] }],
-      config: { 
-        responseModalities: [Modality.AUDIO], 
-        speechConfig: { 
-          multiSpeakerVoiceConfig: { 
-            speakerVoiceConfigs: dialogue.map(d => ({ 
-              speaker: d.speaker, 
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: d.voice } } 
-            })) 
-          } 
-        } 
-      }
+      config: config,
     });
-    // Fix: Correct candidate and part access
+
     return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "";
   });
 };

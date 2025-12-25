@@ -17,8 +17,7 @@ import {
   GraduationCap,
   Award,
   LogOut,
-  ChevronRight,
-  Video
+  ChevronRight
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -130,7 +129,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, 
         </div>
         
         <div className="space-y-1">
-          <NavItem view={View.VIDEO_GEN} current={currentView} icon={Video} label="Video AI (Veo 3.1)" onClick={handleSetView} />
           <NavItem view={View.WEDDING_GEN} current={currentView} icon={Heart} label="Wedding AI" onClick={handleSetView} />
           <NavItem view={View.FACE_GEN} current={currentView} icon={UserIcon} label="Face Master AI" onClick={handleSetView} />
           <NavItem view={View.BG_GEN} current={currentView} icon={ImageIcon} label="Tạo phông nền" onClick={handleSetView} />

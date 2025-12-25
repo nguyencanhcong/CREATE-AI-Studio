@@ -21,7 +21,6 @@ import {
   LayoutGrid,
   Sparkles,
   User as UserIcon,
-  Video,
   Camera
 } from 'lucide-react';
 
@@ -179,14 +178,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
       {/* Sáng tạo đa phương tiện */}
       <SectionHeader title="Sáng tạo đa phương tiện" icon={Palette} color="bg-accent-600" />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <ToolCard 
-            title="Video AI (Veo 3.1)" 
-            desc="Tạo video chất lượng cao từ ảnh và mô tả, mang đến chuyển động sống động và tự nhiên."
-            icon={Video}
-            colorClass="from-brand-600 to-accent-500"
-            badge="New"
-            onClick={() => setView(View.VIDEO_GEN)}
-        />
         <ToolCard 
             title="Wedding AI" 
             desc="Lưu giữ khoảnh khắc hạnh phúc với ảnh cưới solo hoặc cặp đôi, giữ nguyên khuôn mặt thật."
