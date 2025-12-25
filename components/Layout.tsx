@@ -17,7 +17,8 @@ import {
   GraduationCap,
   Award,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Music4
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -130,6 +131,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, 
         
         <div className="space-y-1">
           <NavItem view={View.WEDDING_GEN} current={currentView} icon={Heart} label="Wedding AI" onClick={handleSetView} />
+          <NavItem view={View.SOUND_MIXER} current={currentView} icon={Music4} label="Audio AI Mixer" onClick={handleSetView} />
           <NavItem view={View.FACE_GEN} current={currentView} icon={UserIcon} label="Face Master AI" onClick={handleSetView} />
           <NavItem view={View.BG_GEN} current={currentView} icon={ImageIcon} label="Tạo phông nền" onClick={handleSetView} />
           <NavItem view={View.ART_GEN} current={currentView} icon={Palette} label="Tạo ảnh nghệ thuật" onClick={handleSetView} />

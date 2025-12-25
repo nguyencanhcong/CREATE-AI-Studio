@@ -19,6 +19,7 @@ const SlideGenerator = lazy(() => import('./components/SlideGenerator').then(m =
 const PosterGenerator = lazy(() => import('./components/PosterGenerator').then(m => ({ default: m.PosterGenerator })));
 const QuizGenerator = lazy(() => import('./components/QuizGenerator').then(m => ({ default: m.QuizGenerator })));
 const QuizGrader = lazy(() => import('./components/QuizGrader').then(m => ({ default: m.QuizGrader })));
+const SoundMixer = lazy(() => import('./components/SoundMixer').then(m => ({ default: m.SoundMixer })));
 
 const LoadingView = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
@@ -83,6 +84,7 @@ function App() {
                 case View.TET_2026_GEN: return <TetGenerator />;
                 case View.CHRISTMAS_GEN: return <ChristmasGenerator />;
                 case View.POSTER_GEN: return <PosterGenerator />;
+                case View.SOUND_MIXER: return <SoundMixer />;
                 default: return <Dashboard setView={setCurrentView} />;
               }
             })()}

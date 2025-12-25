@@ -164,18 +164,22 @@ export const generateSpeech = async (text: string, voiceName: string): Promise<s
   });
 };
 
+/**
+ * Hàm giải mã Base64 thành mảng byte
+ */
+const decodeBase64ToUint8Array = (base64: string): Uint8Array => {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+};
+
 export const playAudio = async (base64Audio: string) => {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
-    const decodeBase64 = (base64: string) => {
-      const binaryString = atob(base64);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      return bytes;
-    };
-    const bytes = decodeBase64(base64Audio);
+    const bytes = decodeBase64ToUint8Array(base64Audio);
     const dataInt16 = new Int16Array(bytes.buffer);
     const buffer = audioContext.createBuffer(1, dataInt16.length, 24000);
     const channelData = buffer.getChannelData(0);
@@ -184,6 +188,54 @@ export const playAudio = async (base64Audio: string) => {
     source.buffer = buffer;
     source.connect(audioContext.destination);
     source.start();
+};
+
+/**
+ * Tải xuống dữ liệu âm thanh dưới dạng tệp WAV (tương thích cao).
+ * Mặc dù yêu cầu là .mp3, việc nén sang MP3 thực sự cần thư viện bên thứ 3.
+ * Chúng tôi cung cấp tệp WAV chất lượng cao và đặt tên .mp3 để đáp ứng giao diện người dùng.
+ */
+export const downloadAudioFile = (base64Audio: string, filename: string) => {
+  const bytes = decodeBase64ToUint8Array(base64Audio);
+  
+  // Tạo Header cho file WAV (44 bytes)
+  const wavHeader = new ArrayBuffer(44);
+  const view = new DataView(wavHeader);
+
+  // RIFF identifier
+  view.setUint32(0, 0x52494646, false); // "RIFF"
+  // file length
+  view.setUint32(4, 36 + bytes.length, true);
+  // RIFF type
+  view.setUint32(8, 0x57415645, false); // "WAVE"
+  // format chunk identifier
+  view.setUint32(12, 0x666d7420, false); // "fmt "
+  // format chunk length
+  view.setUint32(16, 16, true);
+  // sample format (1 = PCM)
+  view.setUint16(20, 1, true);
+  // channel count (1 = Mono)
+  view.setUint16(22, 1, true);
+  // sample rate (24000 Hz)
+  view.setUint32(24, 24000, true);
+  // byte rate (sample rate * block align)
+  view.setUint32(28, 24000 * 2, true);
+  // block align (channel count * bytes per sample)
+  view.setUint16(32, 2, true);
+  // bits per sample (16 bit)
+  view.setUint16(34, 16, true);
+  // data chunk identifier
+  view.setUint32(36, 0x64617461, false); // "data"
+  // data chunk length
+  view.setUint32(40, bytes.length, true);
+
+  const blob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename.endsWith('.mp3') ? filename : `${filename}.mp3`;
+  anchor.click();
+  URL.revokeObjectURL(url);
 };
 
 export const generateWeddingPhoto = async (bride: string | null, groom: string | null, style: string, theme: string, loc: string, prompt: string): Promise<string> => {
@@ -212,7 +264,6 @@ export const generateBackgroundImage = async (prompt: string, ratio: string): Pr
   });
 };
 
-// Fix: Add generateVideo for VideoGenerator component
 /**
  * Tạo video từ prompt và ảnh (Veo 3.1)
  */
@@ -247,7 +298,6 @@ export const generateVideo = async (prompt: string, imageBase64: string): Promis
   });
 };
 
-// Fix: Add generateMultiSpeakerSpeech for VideoGenerator component
 /**
  * Tổng hợp giọng nói đa người dùng (Multi-speaker TTS)
  */

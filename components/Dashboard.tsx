@@ -21,7 +21,8 @@ import {
   LayoutGrid,
   Sparkles,
   User as UserIcon,
-  Camera
+  Camera,
+  Music4
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -187,11 +188,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
             onClick={() => setView(View.WEDDING_GEN)}
         />
         <ToolCard 
-            title="Face Master AI" 
-            desc="Xử lý đa diện mạo, giữ đúng 100% đường nét kể cả khi hóa thân vào các nhân vật khác nhau."
-            icon={UserIcon}
-            colorClass="from-brand-500 to-brand-700"
-            onClick={() => setView(View.FACE_GEN)}
+            title="Audio AI Mixer" 
+            desc="Phối trộn các lớp âm thanh: xe cộ, chim hót, mưa rơi... tạo không gian âm thanh sống động."
+            icon={Music4}
+            colorClass="from-brand-500 to-accent-500"
+            badge="New"
+            onClick={() => setView(View.SOUND_MIXER)}
         />
         <ToolCard 
             title="Tạo phông nền" 

@@ -15,6 +15,7 @@ export enum View {
   POSTER_GEN = 'POSTER_GEN',
   QUIZ_GEN = 'QUIZ_GEN',
   QUIZ_GRADER = 'QUIZ_GRADER',
+  SOUND_MIXER = 'SOUND_MIXER',
 }
 
 export enum UserRole {
