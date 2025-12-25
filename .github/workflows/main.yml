@@ -21,7 +21,7 @@ jobs:
     - name: Google Auth
       uses: 'google-github-actions/auth@v2'
       with:
-        credentials_json: '${{ secrets.GCP_SA_KEY }}' # Key của Service Account
+        credentials_json: '${{ gen-lang-client-0179446953 }}' # Key của Service Account
 
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
